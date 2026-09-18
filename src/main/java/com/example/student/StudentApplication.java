@@ -3,6 +3,8 @@ package com.example.student;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetSocketAddress;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import com.sun.net.httpserver.HttpExchange;
@@ -14,7 +16,6 @@ public class StudentApplication {
 
         StudentService service = new StudentService();
 
-        // Add sample students
         service.addStudent(
                 new Student(101, "Rahul", "Computer Science")
         );
@@ -23,12 +24,55 @@ public class StudentApplication {
                 new Student(102, "Priya", "Information Technology")
         );
 
-        // Start web server on port 8082
         HttpServer server = HttpServer.create(
                 new InetSocketAddress(8082), 0
         );
 
         server.createContext("/", exchange -> {
+
+            if ("POST".equalsIgnoreCase(exchange.getRequestMethod())) {
+
+                String body = new String(
+                        exchange.getRequestBody().readAllBytes(),
+                        StandardCharsets.UTF_8
+                );
+
+                String[] values = body.split("&");
+
+                int id = 0;
+                String name = "";
+                String course = "";
+
+                for (String value : values) {
+                    String[] pair = value.split("=", 2);
+
+                    if (pair.length < 2) {
+                        continue;
+                    }
+
+                    String key = URLDecoder.decode(
+                            pair[0],
+                            StandardCharsets.UTF_8
+                    );
+
+                    String data = URLDecoder.decode(
+                            pair[1],
+                            StandardCharsets.UTF_8
+                    );
+
+                    if ("id".equals(key)) {
+                        id = Integer.parseInt(data);
+                    } else if ("name".equals(key)) {
+                        name = data;
+                    } else if ("course".equals(key)) {
+                        course = data;
+                    }
+                }
+
+                service.addStudent(
+                        new Student(id, name, course)
+                );
+            }
 
             List<Student> students = service.getAllStudents();
 
@@ -41,8 +85,25 @@ public class StudentApplication {
             response.append("<body>");
 
             response.append("<h1>Student Management System</h1>");
-            response.append("<h2>Students</h2>");
 
+            response.append("<h2>Add Student</h2>");
+
+            response.append("<form method='POST' action='/'>");
+
+            response.append("ID: ");
+            response.append("<input type='number' name='id' required><br><br>");
+
+            response.append("Name: ");
+            response.append("<input type='text' name='name' required><br><br>");
+
+            response.append("Course: ");
+            response.append("<input type='text' name='course' required><br><br>");
+
+            response.append("<button type='submit'>Add Student</button>");
+
+            response.append("</form>");
+
+            response.append("<h2>Students</h2>");
             response.append("<ul>");
 
             for (Student student : students) {
@@ -56,6 +117,7 @@ public class StudentApplication {
             }
 
             response.append("</ul>");
+
             response.append("</body>");
             response.append("</html>");
 
@@ -77,13 +139,16 @@ public class StudentApplication {
         exchange.getResponseHeaders()
                 .set("Content-Type", "text/html; charset=UTF-8");
 
+        byte[] responseBytes =
+                response.getBytes(StandardCharsets.UTF_8);
+
         exchange.sendResponseHeaders(
                 200,
-                response.getBytes().length
+                responseBytes.length
         );
 
         try (OutputStream outputStream = exchange.getResponseBody()) {
-            outputStream.write(response.getBytes());
+            outputStream.write(responseBytes);
         }
     }
 }
