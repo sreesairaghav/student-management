@@ -18,14 +18,14 @@ pipeline {
 
         stage('Docker Build') {
             steps {
-                bat '"C:/Users/SSR/AppData/Local/Programs/Docker/DockerDesktop/resources/bin/docker.exe" build -t student-management:1.0 .'
+                bat '"C:/Users/SSR/AppData/Local/Programs/DockerDesktop/resources/bin/docker.exe" build -t student-management:1.0 .'
             }
         }
 
         stage('Docker Deploy') {
             steps {
-                bat '"C:/Users/SSR/AppData/Local/Programs/Docker/DockerDesktop/resources/bin/docker.exe" rm -f student-app || exit 0'
-                bat '"C:/Users/SSR/AppData/Local/Programs/Docker/DockerDesktop/resources/bin/docker.exe" run -d --name student-app -p 8083:8082 student-management:1.0'
+                bat '"C:/Users/SSR/AppData/Local/Programs/DockerDesktop/resources/bin/docker.exe" rm -f student-app || exit 0'
+                bat '"C:/Users/SSR/AppData/Local/Programs/DockerDesktop/resources/bin/docker.exe" run -d --name student-app -p 8083:8082 student-management:1.0'
             }
         }
     }
