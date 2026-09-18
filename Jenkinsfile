@@ -11,10 +11,8 @@ pipeline {
         }
 
         stage('Maven Build & Test') {
-            steps {
-                withMaven(maven: 'Maven-3.9.16') {
-                    bat 'mvn clean package'
-                }
+        steps {
+            bat '"C:\\Program Files\\Apache\\Maven\\apache-maven-3.9.16\\bin\\mvn.cmd" clean package'
             }
         }
 
