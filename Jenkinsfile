@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -20,7 +21,7 @@ pipeline {
 
         stage('Build & Test') {
             steps {
-                sh 'mvn clean package'
+                bat 'mvn clean package'
             }
             post {
                 always {
@@ -41,10 +42,10 @@ pipeline {
             cleanWs()
         }
         success {
-            echo "✅ Build successful for branch: ${env.BRANCH_NAME}"
+            echo "Build successful for branch: ${env.BRANCH_NAME}"
         }
         failure {
-            echo "❌ Build failed for branch: ${env.BRANCH_NAME}"
+            echo "Build failed for branch: ${env.BRANCH_NAME}"
         }
     }
 }
