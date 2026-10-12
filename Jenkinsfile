@@ -1,32 +1,50 @@
 pipeline {
-
     agent any
 
-    stages {
+    tools {
+        maven 'Maven 3.9'
+        jdk 'JDK 21'
+    }
 
+    options {
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        timeout(time: 30, unit: 'MINUTES')
+    }
+
+    stages {
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
 
-        stage('Maven Build & Test') {
-        steps {
-            bat '"C:\\Program Files\\Apache\\Maven\\apache-maven-3.9.16\\bin\\mvn.cmd" clean package'
+        stage('Build & Test') {
+            steps {
+                sh 'mvn clean package'
+            }
+            post {
+                always {
+                    junit 'target/surefire-reports/*.xml'
+                }
             }
         }
 
-        stage('Docker Build') {
+        stage('Archive Artifacts') {
             steps {
-                bat '"C:/Users/SSR/AppData/Local/Programs/DockerDesktop/resources/bin/docker.exe" build -t student-management:1.0 .'
+                archiveArtifacts artifacts: 'target/*.jar', fingerprint: true
             }
         }
+    }
 
-        stage('Docker Deploy') {
-            steps {
-                bat '"C:/Users/SSR/AppData/Local/Programs/DockerDesktop/resources/bin/docker.exe" rm -f student-app || exit 0'
-                bat '"C:/Users/SSR/AppData/Local/Programs/DockerDesktop/resources/bin/docker.exe" run -d --name student-app -p 8083:8082 student-management:1.0'
-            }
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            echo "✅ Build successful for branch: ${env.BRANCH_NAME}"
+        }
+        failure {
+            echo "❌ Build failed for branch: ${env.BRANCH_NAME}"
         }
     }
 }
